@@ -6,7 +6,7 @@ export async function timerTrigger(tim: Timer, context: InvocationContext): Prom
     await scr.initScraperIfNull();
     const url = 'https://www.cnn.com/world';
     // const url = 'https://www.foxnews.com/world';
-    const content = await scr.pullPageContent(url);
+    const content = await scr.grabArticleLinksFromPage(url);
     context.log(content);
 }
 

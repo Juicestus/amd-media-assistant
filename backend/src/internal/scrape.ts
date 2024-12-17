@@ -17,19 +17,11 @@ export async function initScraperIfNull() {
     }
 }
 
-export async function pullPageContent(url: string): Promise<string> {
+export async function grabArticleLinksFromPage(url: string): Promise<string[]> {
     await scraper.page.goto(url, { waitUntil: "networkidle2" });
     const selector = 'body';
     await scraper.page.waitForSelector(selector)
-    // const data = await scraper.page.$eval(selector, (el) => el.textContent || '');
-    // const data = await scraper.page.content();
-    // const data = await scraper.page.evaluate(() =>  document.documentElement.outerHTML);
-
     const data = await scraper.page.evaluate(() => {
-        // for (const elem of document.body.querySelectorAll('script')) elem.remove();
-        // for (const elem of document.body.querySelectorAll('iframe')) elem.remove();
-        // for (const elem of document.body.querySelectorAll('style')) elem.remove();
-        // return document.body.innerHTML;
         const linkSet: Set<string> = new Set<string>();
         for (const link of document.body.querySelectorAll('a')) {
             linkSet.add(link.toString());
@@ -40,18 +32,13 @@ export async function pullPageContent(url: string): Promise<string> {
         });
         return links;
       });
-
-    console.log("Data: " + data);
-
     await llm.initLLMIfNull();
-    await llm.sendMessage("Please filter the linkes to only be the ones that are for articles: " + data)
+    await llm.sendMessage("Please filter the links to only be the ones that are for articles. Please return your response in a json object with single entry \"articles\" which is a list of the article links as strings.\n" + data)
     const run = await llm.beginResponse();
     const result = await llm.getResult(run);
-
     // console.log(JSON.stringify(result));
-
-    // return result;
-    return JSON.stringify(result);
+    const parsed = JSON.parse(result[0]['text']['value']);
+    return parsed['articles'];
 }
 
 export async function closeScraper(scraper: Scraper): Promise<void> {
