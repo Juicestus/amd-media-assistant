@@ -1,13 +1,12 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext, Timer } from "@azure/functions";
 import * as scr from "../internal/scrape";
 
-let scraper: scr.Scraper | null = null;
 
 export async function timerTrigger(tim: Timer, context: InvocationContext): Promise<void> {
-    scraper = await scr.initScraperIfNull(scraper);
-
+    await scr.initScraperIfNull();
     const url = 'https://www.cnn.com/world';
-    const content = await scr.pullPageContent(scraper, url);
+    // const url = 'https://www.foxnews.com/world';
+    const content = await scr.pullPageContent(url);
     context.log(content);
 }
 
@@ -20,8 +19,8 @@ export async function httpGetFunction(request: HttpRequest, context: InvocationC
 };
 
 app.timer('timerTrigger', {
-    schedule: '*/30 * * * * *',  // every 30 seconds
-    // schedule: '* */30 * * * *',     // every 30 minutes
+    // schedule: '*/30 * * * * *',  // every 30 seconds
+    schedule: '* */30 * * * *',     // every 30 minutes
     runOnStartup: true,
     handler: timerTrigger
 });
@@ -31,3 +30,4 @@ app.http('httpget', {
     authLevel: 'function',
     handler: httpGetFunction
 });
+
