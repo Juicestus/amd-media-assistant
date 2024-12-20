@@ -39,7 +39,7 @@ export const queryArticlePreview = input.cosmosDB({
     databaseName: 'amd-assistant-database',
     containerName: 'articles',
     connection: 'CosmosDbConnectionSetting',
-    sqlQuery: 'SELECT c.id, c.category, c.url, c.site, c.timestamp FROM c'
+    sqlQuery: 'SELECT c.id, c.title, c.category, c.url, c.site, c.timestamp FROM c'
 });
 
 export async function httpGetAllArticlesPreview(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
@@ -78,11 +78,21 @@ export async function httpGetArticleById(request: HttpRequest, context: Invocati
 
     context.log(`Http function processed request for article id "${articleId}"`);
 
+    let decoded;
+    try {
+        decoded = decodeURIComponent(articleId);
+    }  catch (error) {
+        return {
+            status: 400,
+            body: 'Invalid article ID'
+        };
+    }
+
     const querySpec = {
-        query: "SELECT * FROM c WHERE c.url = @id",
+        query: "SELECT * FROM c WHERE c.id = @id",
         parameters: [{
             name: "@id",
-            value: articleId,
+            value: decoded,
         }],
     };
 

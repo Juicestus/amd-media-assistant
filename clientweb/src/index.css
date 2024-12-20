@@ -1,0 +1,27 @@
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+h1,
+h2,
+h3,
+h4,
+h5, h6,
+p,
+label {
+  color: black !important;
+}
+
+h1 { 
+  font-size: 2rem;
+  font-weight: bold !important;
+}
+
+.ad-btn-col {
+  width: 7rem;
+}
+
+.ad-btn {
+  width: 6rem;
+}
