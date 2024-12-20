@@ -14,9 +14,11 @@ function get(endpt) {
 }
 
 
-post("addArticleDirectory", {
-    "id": "The Hindu",
-    "url": "https://www.thehindu.com/"
-});
+// post("addArticleDirectory", {
+//     "id": "The Hindu",
+//     "url": "https://www.thehindu.com/"
+// });
 
-// get("getArticleDirectories");
+// get("getAllArticlesPreview");
+
+get("getArticleById?id=https://www.thehindu.com/news/national/andhra-pradesh/doctors-of-a-lesser-state-a-long-wait-for-permanent-registrations-in-andhra-pradesh/article69005918.ece");

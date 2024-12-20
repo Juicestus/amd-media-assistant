@@ -11,21 +11,21 @@ export function isArticleDirectory(obj: any): obj is ArticleDirectory {
            typeof obj.url === 'string';
 }
 
-export const sendToArticleDirectories = output.cosmosDB({
+export const articleDirectoriesOutput = output.cosmosDB({
     databaseName: 'amd-assistant-database',
     containerName: 'article-directories',
     createIfNotExists: true,
     connection: 'CosmosDbConnectionSetting'
 });
 
-export const getArticleDirectories = input.cosmosDB({
+export const articleDirectoriesInput = input.cosmosDB({
     databaseName: 'amd-assistant-database',
     containerName: 'article-directories',
     connection: 'CosmosDbConnectionSetting',
     sqlQuery: 'SELECT * FROM c'
 });
 
-export async function httpPostAddArticleDirectory(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
+export async function httpPostArticleDirectory(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
     context.log(`Http function processed request for url "${request.url}"`);
 
     try {
@@ -38,7 +38,7 @@ export async function httpPostAddArticleDirectory(request: HttpRequest, context:
             };
         }
 
-        context.extraOutputs.set(sendToArticleDirectories, {
+        context.extraOutputs.set(articleDirectoriesOutput, {
             id: data.id,
             url: data.url
           });
@@ -57,15 +57,15 @@ export async function httpPostAddArticleDirectory(request: HttpRequest, context:
 
 app.http('addArticleDirectory', {
     methods: ['POST'],
-    extraOutputs: [sendToArticleDirectories],
+    extraOutputs: [articleDirectoriesOutput],
     authLevel: 'function',
-    handler: httpPostAddArticleDirectory
+    handler: httpPostArticleDirectory
 });
 
-export async function httpGetGetArticleDirectories(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
+export async function httpGetArticleDirectories(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
     context.log(`Http function processed request for url "${request.url}"`);
 
-    const articleDirectories = context.extraInputs.get(getArticleDirectories);
+    const articleDirectories = context.extraInputs.get(articleDirectoriesInput);
 
     if (articleDirectories) {
         return { body: JSON.stringify(articleDirectories) };
@@ -79,7 +79,46 @@ export async function httpGetGetArticleDirectories(request: HttpRequest, context
 
 app.http('getArticleDirectories', {
     methods: ['GET'],
-    extraInputs: [getArticleDirectories],
+    extraInputs: [articleDirectoriesInput],
     authLevel: 'function',
-    handler: httpGetGetArticleDirectories
+    handler: httpGetArticleDirectories
+});
+
+export async function httpDeleteArticleDirectory(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
+    context.log(`Http function processed request for url "${request.url}"`);
+
+    const id = request.query.get('id');
+
+    if (!id) {
+        return {
+            status: 400,
+            body: 'Please provide the id of the article directory to delete.'
+        };
+    }
+
+    try {
+        const deleteQuery = {
+            query: 'DELETE FROM c WHERE c.id = @id',
+            parameters: [{ name: '@id', value: id }]
+        };
+
+        context.extraOutputs.set(articleDirectoriesOutput, deleteQuery);
+
+        return {
+            status: 200,
+            body: `Deleted Article Directory with id ${id}`
+        };
+    } catch (error) {
+        return {
+            status: 500,
+            body: 'Failed to delete the article directory.'
+        };
+    }
+};
+
+app.http('deleteArticleDirectory', {
+    methods: ['DELETE'],
+    extraOutputs: [articleDirectoriesOutput],
+    authLevel: 'function',
+    handler: httpDeleteArticleDirectory
 });
