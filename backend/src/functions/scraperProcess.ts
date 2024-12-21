@@ -47,6 +47,7 @@ export async function timerTrigger(tim: Timer, context: InvocationContext): Prom
         console.log('| Category: ' + article.category);
         console.log('| Content: ' + article.content.substring(0, Math.min(100, article.content.length)) + '...');
         console.log('| Timestamp: ' + article.timestamp);
+        // some issue here?
         context.extraOutputs.set(articleOutput, article);
     }
 }
@@ -54,8 +55,8 @@ export async function timerTrigger(tim: Timer, context: InvocationContext): Prom
 app.timer('timerTrigger', {
     // schedule: '*/30 * * * * *',  // every 30 seconds
     schedule: '0 */2 * * *',     // every 2 hours
-    // runOnStartup: false,
-    runOnStartup: true,
+    runOnStartup: false,
+    // runOnStartup: true,
     handler: timerTrigger,
     extraInputs: [articleDirectoriesInput],
     extraOutputs: [articleOutput]
