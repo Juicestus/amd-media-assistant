@@ -78,7 +78,7 @@ export async function httpGetArticleById(request: HttpRequest, context: Invocati
 
     context.log(`Http function processed request for article id "${articleId}"`);
 
-    let decoded;
+    let decoded: string;
     try {
         decoded = decodeURIComponent(articleId);
     }  catch (error) {
@@ -111,4 +111,51 @@ app.http('getArticleById', {
     methods: ['GET'],
     authLevel: 'function',
     handler: httpGetArticleById
+});
+
+export async function httpGetArticlesPreviewByCategory(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
+    const category = request.query.get('category');
+    if (!category) {
+        return {
+            status: 400,
+            body: 'Category is required'
+        };
+    }
+    if (!articleCategories.includes(category as ArticleCategory)) {
+        return {
+            status: 400,
+            body: 'Invalid category'
+        };
+    }
+
+    context.log(`Http function processed request for article category "${category}"`);
+
+    const querySpec = {
+        query: "SELECT c.id, c.title, c.category, c.url, c.site, c.timestamp FROM c WHERE c.category = @category",
+        parameters: [{
+            name: "@category",
+            value: category as string,
+        }],
+    };
+
+    const { resources } = await articleContainerInterface.items.query(querySpec).fetchAll();
+    if (resources) {
+        return { 
+            body: JSON.stringify(resources.map(article => ({
+                ...article,
+                content: ''
+            } as Article)))
+        };
+    }
+
+    return {
+        status: 404,
+        body: 'Articles not found'
+    };
+}
+
+app.http('getArticlesPreviewByCategory', {
+    methods: ['GET'],
+    authLevel: 'function',
+    handler: httpGetArticlesPreviewByCategory
 });
