@@ -3,7 +3,7 @@ import { useCallback, useContext, useEffect, useState } from "react";
 import { Button, Card, Col, Container, Form, OverlayTrigger, Popover, Row, Table } from "react-bootstrap";
 import { Navigate, useBeforeUnload, useNavigate } from "react-router-dom";
 import Header from "../components/Header";
-import { Article, ArticleDirectory } from "../data";
+import { Article, ArticleDirectory } from "amdassistant-common/data";
 import { getArticlePreviews } from "../api";
 
 export default () => {

@@ -1,5 +1,5 @@
 {
-  "name": "amd-assistant-clientweb",
+  "name": "amdassistant-clientweb",
   "version": "1.0",
   "private": true,
   "author": "Justus Langull",
@@ -36,7 +36,8 @@
     "react-scripts": "5.0.1",
     "react-simple-code-editor": "^0.14.1",
     "typescript": "^4.8.4",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "amdassistant-common": "../common"
   },
   "scripts": {
     "start": "react-scripts start",

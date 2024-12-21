@@ -3,7 +3,7 @@ import { useCallback, useContext, useEffect, useState } from "react";
 import { Button, Card, Col, Container, Form, OverlayTrigger, Popover, Row, Table } from "react-bootstrap";
 import { Navigate, useBeforeUnload, useNavigate } from "react-router-dom";
 import Header from "../components/Header";
-import { ArticleDirectory } from "../data";
+import { ArticleDirectory } from "amdassistant-common/data";
 import { addArticleDirectory, getArticleDirectories } from "../api";
 
 // import MenuIcon from '@mui/icons-material/Menu';
