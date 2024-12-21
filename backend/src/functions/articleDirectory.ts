@@ -1,15 +1,5 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext, output, input } from "@azure/functions";
-
-export interface ArticleDirectory {
-    id: string;
-    url: string;
-}
-
-export function isArticleDirectory(obj: any): obj is ArticleDirectory {
-    return typeof obj === 'object' && obj !== null && 
-           typeof obj.id === 'string' && 
-           typeof obj.url === 'string';
-}
+import { ArticleDirectory, isArticleDirectory } from "amdassistant-common/data";
 
 export const articleDirectoriesOutput = output.cosmosDB({
     databaseName: 'amd-assistant-database',
