@@ -1,4 +1,4 @@
-import { Article, ArticleDirectory } from "amdassistant-common/data";
+import { Article, ArticleDirectory } from "./data";
 
 const base = "http://localhost:7071/api/";
 

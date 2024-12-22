@@ -1,7 +1,7 @@
 // npm i puppeteer-core # Alternatively, install as a library, without downloading Chrome.
 import * as ppt from "puppeteer";
 import * as llm from "./llm";
-import { Article, articleCategories } from "amdassistant-common/data";
+import { Article, articleCategories } from "../data";
 
 export interface Scraper {
     browser: ppt.Browser;

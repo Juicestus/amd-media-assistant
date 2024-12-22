@@ -1,37 +1,27 @@
 
 import { Alert, Button, StyleSheet, Text, View } from 'react-native';
 import 'react-native-reanimated';
-import Tts, { Options } from 'react-native-tts';
-
-const Speak = (text: string) => {
-  Tts.speak(text, {
-    androidParams: {
-      KEY_PARAM_PAN: -1,
-      KEY_PARAM_VOLUME: 0.5,
-      KEY_PARAM_STREAM: 'STREAM_MUSIC',
-    }
-  } as Options);
-}
-
-
-const UIButton = ({ text, color, width, onclick }:
-  { text: string, color: string, width: number, onclick: () => void }) => (
-  <View style={{ width: `${width}%`, height: 150 }}>
-    <Button
-      title={"\n\n\n" + text + "\n\n\n\n"}
-      color={color}
-      onPress={() => {
-        Speak('Button ' + text + ' pressed');
-        onclick();
-      }}
-    />
-  </View>
-)
+import { TTSInit } from './tts';
+import { UIButton } from './components/UIButton';
+import { useState } from 'react';
+import { Article, articleCategories, ArticleCategory } from './data';
+import { getArticlePreviewsByCategory } from './api';
 
 export default function RootLayout() {
 
-  Tts.getInitStatus().then(() => {
-  });
+  TTSInit();
+  
+  const [currentArticle, setCurrentArticle] = useState<Article|null>(null);
+  const [articlePreviews, setArticlePreviews] = useState<Article[]>([]);
+  const [currentCategory, setCurrentCategory] = useState<ArticleCategory>(articleCategories[0]);
+
+  const nextCategory = () => {
+    const currentIndex = articleCategories.indexOf(currentCategory);
+    const nextIndex = (currentIndex + 1) % articleCategories.length;
+    setCurrentCategory(articleCategories[nextIndex]);
+    console.log("BUHUR");
+    getArticlePreviewsByCategory(articleCategories[nextIndex]).then(s => setArticlePreviews(s));
+  }
 
   return (
     <View style={styles.container}>
@@ -43,14 +33,14 @@ export default function RootLayout() {
           <UIButton text="I forgot" color="blue" width={47.5}
             onclick={() => { }} />
           <UIButton text="Category" color="blue" width={47.5}
-            onclick={() => { }} />
+            onclick={nextCategory} />
         </View>
         <View style={styles.separator} />
         <View style={styles.inLine}>
           <UIButton text="Cancel" color="red" width={30}
-            onclick={() => { }} />
+            onclick={() => { console.log(currentCategory) }} />
           <UIButton text="Pause" color="orange" width={30}
-            onclick={() => { }} />
+            onclick={() => { console.log(articlePreviews )}} />
           <UIButton text="Play" color="green" width={30}
             onclick={() => { }} />
 

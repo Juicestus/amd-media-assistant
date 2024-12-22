@@ -1,5 +1,5 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext, output, input } from "@azure/functions";
-import { ArticleDirectory, isArticleDirectory } from "amdassistant-common/data";
+import { ArticleDirectory, isArticleDirectory } from "../data";
 
 export const articleDirectoriesOutput = output.cosmosDB({
     databaseName: 'amd-assistant-database',

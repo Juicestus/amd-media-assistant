@@ -1,6 +1,6 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext, output, input } from "@azure/functions";
 import { CosmosClient } from '@azure/cosmos';
-import { Article, ArticleCategory, articleCategories } from "amdassistant-common/data";
+import { Article, ArticleCategory, articleCategories } from "../data";
 
 const cosmosClient = new CosmosClient(process.env["CosmosDbConnectionSetting"]);
 const articleContainerInterface = cosmosClient.database('amd-assistant-database').container('articles');
@@ -98,6 +98,7 @@ export async function httpGetArticlesPreviewByCategory(request: HttpRequest, con
             body: 'Category is required'
         };
     }
+    console.log("ACATS:" + articleCategories);
     if (!articleCategories.includes(category as ArticleCategory)) {
         return {
             status: 400,
