@@ -39,3 +39,6 @@ export function isArticleDirectory(obj: any): obj is ArticleDirectory {
 }
 
 export const onewayKeyify = (k: string) => k.replace(/ /g, "-").toLowerCase().replace(/[^a-z0-9-]/g, "");
+
+export const blobUrl = (a: Article, type: 'content' | 'title') => 
+    "https://helpamdstorage.blob.core.windows.net/tts/" + a.key + "-" + type + ".wav";

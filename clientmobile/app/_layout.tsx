@@ -1,15 +1,14 @@
 
 import { Alert, Button, StyleSheet, Text, View } from 'react-native';
 import 'react-native-reanimated';
-import { ttsSpeak, ttsInit, ttsEvent, ttsStop } from './tts';
 import { UIButton } from './components/UIButton';
 import { useEffect, useState } from 'react';
-import { Article, articleCategories, ArticleCategory } from './data';
+import { Article, articleCategories, ArticleCategory, blobUrl } from './data';
 import { getArticle, getArticlePreviewsByCategory } from './api';
+import SoundPlayer, { SoundPlayerEventData } from 'react-native-sound-player'
 
 enum ReadingState {
   PRESTART = "Prestart",
-  LOADING = "Loading",
   PREVIEW = "Preview",
   PAUSED = "Paused",
   PLAYING = "Playing",
@@ -17,86 +16,101 @@ enum ReadingState {
 
 export default function RootLayout() {
 
-  ttsInit();
-
-  const [remainingText, setRemainingText] = useState<string>("");
-
-  
-
-  const [currentArticle, setCurrentArticle] = useState<Article>({
-    id: '',
-    url: '',
-    site: '',
-    title: '',
-    category: 'news',
-    content: '',
-    timestamp: 0
-  });
-  const [articlePreviews, setArticlePreviews] = useState<Article[]>([]);
-  const [currentCategory, setCurrentCategory] = useState<ArticleCategory>(articleCategories[0]);
-
-  const nextCategory = () => {
-    const currentIndex = articleCategories.indexOf(currentCategory);
-    const nextIndex = (currentIndex + 1) % articleCategories.length;
-    setCurrentCategory(articleCategories[nextIndex]);
-    getArticlePreviewsByCategory(articleCategories[nextIndex]).then(s => setArticlePreviews(s));
-  }
-
-  useEffect(() => {
-    getArticlePreviewsByCategory(currentCategory).then(s => setArticlePreviews(s));
-  }, [setArticlePreviews])
-
-  const [currentArticleIndex, setCurrentArticleIndex] = useState(0);
   const [state, __setState] = useState<ReadingState>(ReadingState.PRESTART);
-
   const setState = (newState: ReadingState) => {
     console.log("State: " + newState);
     __setState(newState);
   }
 
-  const nextArticleIndex = () => {
-    const nextIndex = (currentArticleIndex + 1) % articlePreviews.length;
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [currentCategory, setCurrentCategory] = useState<ArticleCategory>(articleCategories[0]);
+  const [categoryPointers, setCategoryPointers] = useState<{ [key: string]: number }>({});
+  const [currentArticleIndex, setCurrentArticleIndex] = useState(0);
+  const currentArticle = () => articles[currentArticleIndex];
+
+  const nextCategory = async () => {
+    SoundPlayer.pause();
+    setCategoryPointers({ ...categoryPointers, [currentCategory]: currentArticleIndex + 1}); // !OR +1
+    // ^ the or +1 is up to personal preference, doesnt need to be there
+    // w/ +1 : the next time the category is selected, the next article will be read
+    // w/o +1 : the same article will be read again that we ended the category on
+
+    let index = articleCategories.indexOf(currentCategory);
+    let articles: Article[] = []; // advances the next category and skips over empty categories
+    while (articles.length == 0) {
+      index = (index + 1) % articleCategories.length;
+      const nextCategory = articleCategories[index];
+      setCurrentCategory(nextCategory);
+      setCurrentArticleIndex(categoryPointers[nextCategory] || 0);
+      articles = await getArticlePreviewsByCategory(nextCategory);
+      console.log("Switching to category: " + nextCategory);
+    }
+
+    setArticles(articles);
+    setState(ReadingState.PRESTART);
+  }
+
+  const nextArticle = () => {
+    const nextIndex = (currentArticleIndex + 1) % articles.length;
     setCurrentArticleIndex(nextIndex);
-    return nextIndex;
+    return articles[nextIndex];
   }
 
-  const loadArticle = (index: number) => {
-    const id = encodeURIComponent(articlePreviews[index].id);
-    getArticle(id).then(a => {
-      setCurrentArticle(a);
+  const onFinishedPlaying = ({success}: SoundPlayerEventData) => {
+    console.log("Finished playing audio");
+    if (success) {
+      // advance to the next article in the category
+      console.log(state);
 
-      // start reading the preview
-      ttsSpeak(a.title);
-      setState(ReadingState.PREVIEW);
+      if (state == ReadingState.PLAYING) {
+        setTimeout(() => cancelBtn(), 2000);
+      }
+    }
+  }
+
+  const [pageLoaded, setPageLoaded] = useState(false); // lock to prevent multiple fetches
+
+  useEffect(() => {
+    // componentWillMount space
+
+    const onFinishedPlayingSub = SoundPlayer.addEventListener('FinishedPlaying', onFinishedPlaying);
+
+    const onFinishedLoadingSub = SoundPlayer.addEventListener('FinishedLoadingURL', ({success, url}) => {
+      if (!success) {
+        console.error("Failed to load audio URL: " + url);
+      } else {
+        console.log("Finished loading audio URL: " + url);
+      }
     });
-  }
 
-  ttsEvent((textLeft: string) => {
-    // if (textLeft === "") {
-    //   // done
-    //   ttsStop();
-    //   // advance to the next article in the category
-    //   loadArticle(nextArticleIndex());
-    //   setState(ReadingState.LOADING);
-    // }
-    setRemainingText(textLeft);
-  });
+    if (!pageLoaded) {
+      getArticlePreviewsByCategory(currentCategory).then(s => setArticles(s));
+      setPageLoaded(true);
+    }
+
+    return () => {
+      // componentWillUnmount space
+      onFinishedPlayingSub.remove();
+      onFinishedLoadingSub.remove();
+    }
+  }, [setArticles, articles, setPageLoaded, pageLoaded])
 
   const cancelBtn = () => {
     if (state == ReadingState.PLAYING || state == ReadingState.PAUSED
       || state == ReadingState.PREVIEW) {
-      // stop reading whatever
-      ttsStop();
+ 
+      SoundPlayer.pause();
       // advance to the next article in the category
-      loadArticle(nextArticleIndex());
-      setState(ReadingState.LOADING);
+
+      SoundPlayer.playUrl(blobUrl(nextArticle(), 'title'));
+      setState(ReadingState.PREVIEW);
     }
   }
 
   const pauseBtn = () => {
     if (state == ReadingState.PLAYING) {
       // pause reading the article
-      ttsStop();
+      SoundPlayer.pause();
       setState(ReadingState.PAUSED);
     }
     // pause could be joined in state with play
@@ -105,26 +119,28 @@ export default function RootLayout() {
 
   const playBtn = () => {
     if (state == ReadingState.PRESTART) {
+
+      console.log("Playing category" + currentCategory);
       // being reading the preview of the first article
-      loadArticle(0);
-      setState(ReadingState.LOADING);
+      SoundPlayer.playUrl(blobUrl(currentArticle(), 'title'));
+      setState(ReadingState.PREVIEW);
     }
 
     if (state == ReadingState.PREVIEW) {
       // start reading the article
-      ttsSpeak(currentArticle.content);
+      SoundPlayer.playUrl(blobUrl(currentArticle(), 'content'));
       setState(ReadingState.PLAYING);
     }
 
     if (state == ReadingState.PAUSED) {
       // resume reading the article from the last position
-      ttsSpeak(remainingText);
+      SoundPlayer.resume();
       setState(ReadingState.PLAYING);
     }
   }
 
   const miscAction = () => {
-    ttsSpeak("The quick brown fox jumped over the lazy dog");
+    SoundPlayer.playUrl("https://helpamdstorage.blob.core.windows.net/tts/5-things-to-know-for-jan-8-california-wildfires-winter-storm-trump-transition-cybertruck-explosion-meta-content.wav");
   }
 
   return (

@@ -3,9 +3,8 @@ import { useCallback, useContext, useEffect, useState } from "react";
 import { Button, Card, Col, Container, Form, OverlayTrigger, Popover, Row, Table } from "react-bootstrap";
 import { Navigate, useBeforeUnload, useNavigate, useParams } from "react-router-dom";
 import Header from "../components/Header";
-import { Article, ArticleDirectory } from "../data";
+import { Article, ArticleDirectory, blobUrl } from "../data";
 import { getArticle, getArticlePreviews } from "../api";
-import { blobUrl } from "./Articles";
 
 export default () => {
 

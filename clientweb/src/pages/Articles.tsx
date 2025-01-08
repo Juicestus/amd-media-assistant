@@ -3,11 +3,8 @@ import { useCallback, useContext, useEffect, useState } from "react";
 import { Button, Card, Col, Container, Form, OverlayTrigger, Popover, Row, Table } from "react-bootstrap";
 import { Navigate, useBeforeUnload, useNavigate } from "react-router-dom";
 import Header from "../components/Header";
-import { Article, ArticleDirectory } from "../data";
+import { Article, ArticleDirectory, blobUrl } from "../data";
 import { getArticlePreviews } from "../api";
-
- export const blobUrl = (a: Article, type: 'content' | 'title') => 
-    "https://helpamdstorage.blob.core.windows.net/tts/" + a.key + "-" + type + ".wav";
 
 export default () => {
 
