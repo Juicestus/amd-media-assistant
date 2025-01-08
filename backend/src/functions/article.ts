@@ -2,19 +2,22 @@ import { app, HttpRequest, HttpResponseInit, InvocationContext, output, input } 
 import { CosmosClient } from '@azure/cosmos';
 import { Article, ArticleCategory, articleCategories } from "../data";
 
+const DB_NAME = process.env["CosmosDB_DatabaseName"];
+const CONTAINER_NAME = process.env["CosmosDB_Articles_ContainerName"];
+
 const cosmosClient = new CosmosClient(process.env["CosmosDbConnectionSetting"]);
-const articleContainerInterface = cosmosClient.database('amd-assistant-database').container('articles');
+export const articleContainerInterface = cosmosClient.database(DB_NAME).container(CONTAINER_NAME);
 
 export const articleOutput = output.cosmosDB({
-    databaseName: 'amd-assistant-database',
-    containerName: 'articles',
+    databaseName: DB_NAME,
+    containerName: CONTAINER_NAME,
     createIfNotExists: true,
     connection: 'CosmosDbConnectionSetting'
 });
 
 export const queryArticlePreview = input.cosmosDB({
-    databaseName: 'amd-assistant-database',
-    containerName: 'articles',
+    databaseName: DB_NAME,
+    containerName: CONTAINER_NAME,
     connection: 'CosmosDbConnectionSetting',
     sqlQuery: 'SELECT c.id, c.title, c.category, c.url, c.site, c.timestamp FROM c'
 });

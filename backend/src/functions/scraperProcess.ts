@@ -1,7 +1,9 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext, Timer, output, input } from "@azure/functions";
 import * as scr from "../internal/scrape";
 import { articleDirectoriesInput } from "./articleDirectory";
-import { articleOutput } from "./article";
+import { articleContainerInterface, articleOutput } from "./article";
+import { generateTTS, uploadTTS } from "../internal/tts";
+import { Article } from "../data";
 
 const MAX_ARTICLE_LINKS_PER_DIRECTORY = 5;  // simple cap for excessive data
                                             // low for testing
@@ -34,10 +36,13 @@ async function identifyArticleLinks(urls: string[]) {
 
 export async function timerTrigger(tim: Timer, context: InvocationContext): Promise<void> {
     await scr.initScraperIfNull();
-    const articleDirectoryLinks = ((await context.extraInputs.get(articleDirectoriesInput)) as any[])
-            .map((dir: any) => dir.url);
+    // const articleDirectoryLinks = ((await context.extraInputs.get(articleDirectoriesInput)) as any[])
+    //         .map((dir: any) => dir.url);
     // console.log(articleDirectoryLinks);
-    const articleLinks = await identifyArticleLinks(articleDirectoryLinks);
+    // const articleLinks = await identifyArticleLinks(articleDirectoryLinks);
+
+    const articleLinks = ["https://www.cnn.com/2025/01/07/food/mcdonalds-new-value-menu-mcvalue/index.html"];
+
     for (const articleLink of articleLinks) {
         console.log('Scraping content from article ' + articleLink);
         const article = await scr.scrapeArticleFromLink(articleLink);
@@ -47,16 +52,36 @@ export async function timerTrigger(tim: Timer, context: InvocationContext): Prom
         console.log('| Category: ' + article.category);
         console.log('| Content: ' + article.content.substring(0, Math.min(100, article.content.length)) + '...');
         console.log('| Timestamp: ' + article.timestamp);
-        // some issue here?
-        context.extraOutputs.set(articleOutput, article);
+        console.log('| TTS Key: ' + article.key);
+
+        const ttsFilenameTitle = article.key + '-title.wav';
+        const ttsFilenameContent = article.key + '-content.wav';
+
+        try {
+            articleContainerInterface.items.create(article);
+        } catch (error) {
+            console.log("This article already exists!!");
+            continue;
+        }
+
+        generateTTS(article.title, ttsFilenameTitle, async () => {
+            console.log(`Article "${article.title}" TTS title file created "${ttsFilenameTitle}"`);
+            uploadTTS(ttsFilenameTitle);
+
+            generateTTS(article.content, ttsFilenameContent, async () => {
+                console.log(`Article "${article.title}" TTS content file created "${ttsFilenameContent}"`);
+                uploadTTS(ttsFilenameContent);
+            });
+
+        });
     }
 }
 
 app.timer('timerTrigger', {
     // schedule: '*/30 * * * * *',  // every 30 seconds
     schedule: '0 */2 * * *',     // every 2 hours
-    runOnStartup: false,
-    // runOnStartup: true,
+    // runOnStartup: false,
+    runOnStartup: true,
     handler: timerTrigger,
     extraInputs: [articleDirectoriesInput],
     extraOutputs: [articleOutput]

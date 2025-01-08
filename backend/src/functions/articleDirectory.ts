@@ -1,16 +1,19 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext, output, input } from "@azure/functions";
 import { ArticleDirectory, isArticleDirectory } from "../data";
 
+const DB_NAME = process.env["CosmosDB_DatabaseName"];
+const CONTAINER_NAME = process.env["CosmosDB_ArticleDirectories_ContainerName"];
+
 export const articleDirectoriesOutput = output.cosmosDB({
-    databaseName: 'amd-assistant-database',
-    containerName: 'article-directories',
+    databaseName: DB_NAME,
+    containerName: CONTAINER_NAME,
     createIfNotExists: true,
     connection: 'CosmosDbConnectionSetting'
 });
 
 export const articleDirectoriesInput = input.cosmosDB({
-    databaseName: 'amd-assistant-database',
-    containerName: 'article-directories',
+    databaseName: DB_NAME,
+    containerName: CONTAINER_NAME,
     connection: 'CosmosDbConnectionSetting',
     sqlQuery: 'SELECT * FROM c'
 });

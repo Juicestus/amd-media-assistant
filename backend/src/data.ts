@@ -12,6 +12,7 @@ export interface Article {
     category: ArticleCategory;
     content: string;
     timestamp: number;
+    key: string;
 }
 
 export function isArticle(obj: any): obj is Article {
@@ -22,7 +23,8 @@ export function isArticle(obj: any): obj is Article {
         typeof obj.category === 'string'
         && articleCategories.includes(obj.category)
         && typeof obj.content === 'string'
-        && typeof obj.timestamp === 'number';
+        && typeof obj.timestamp === 'number'
+        && typeof obj.key === 'string';
 }
 
 export interface ArticleDirectory {
@@ -35,3 +37,5 @@ export function isArticleDirectory(obj: any): obj is ArticleDirectory {
            typeof obj.id === 'string' && 
            typeof obj.url === 'string';
 }
+
+export const onewayKeyify = (k: string) => k.replace(/ /g, "-").toLowerCase().replace(/[^a-z0-9-]/g, "");

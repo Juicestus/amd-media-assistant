@@ -1,7 +1,7 @@
 // npm i puppeteer-core # Alternatively, install as a library, without downloading Chrome.
 import * as ppt from "puppeteer";
 import * as llm from "./llm";
-import { Article, articleCategories } from "../data";
+import { Article, articleCategories, onewayKeyify } from "../data";
 
 export interface Scraper {
     browser: ppt.Browser;
@@ -35,11 +35,16 @@ export async function grabArticleLinksFromPage(url: string): Promise<string[]> {
       });
     console.log("Scraped " + url + " found " + data.split('\n').length + " unique links");
     await llm.initLLMIfNull();
-    await llm.sendMessage("Please filter the links to only be the ones that are for articles."
+    const msg = "Please filter the links to only be the ones that are for articles."
         + " Please return your response in a json object with single entry \"articles\" which"
-        + " is a list of the article links as strings.\n" + data);
+        + " is a list of the article links as strings.\n" + data
+    console.log(msg);
+
+    await llm.sendMessage(msg);
     const run = await llm.beginResponse();
+    console.log("LLM run: " + run);
     const result = await llm.getResult(run, "SCRAPE ARTICLE LINKS", url);
+    console.log(result);
     // console.log(JSON.stringify(result));
     const parsed = JSON.parse(result[0]['text']['value']);
     return parsed['articles'];
@@ -82,7 +87,8 @@ export async function scrapeArticleFromLink(url: string): Promise<Article> {
         title: parsed['title'],
         category: parsed['category'],
         content: parsed['content'],
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        key: onewayKeyify(parsed['title'])
     };
 }
 
