@@ -19,7 +19,7 @@ export const queryArticlePreview = input.cosmosDB({
     databaseName: DB_NAME,
     containerName: CONTAINER_NAME,
     connection: 'CosmosDbConnectionSetting',
-    sqlQuery: 'SELECT c.id, c.title, c.category, c.url, c.site, c.timestamp FROM c'
+    sqlQuery: 'SELECT c.id, c.title, c.category, c.url, c.site, c.timestamp, c.key FROM c'
 });
 
 export async function httpGetAllArticlesPreview(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
@@ -101,7 +101,6 @@ export async function httpGetArticlesPreviewByCategory(request: HttpRequest, con
             body: 'Category is required'
         };
     }
-    console.log("ACATS:" + articleCategories);
     if (!articleCategories.includes(category as ArticleCategory)) {
         return {
             status: 400,
@@ -112,7 +111,7 @@ export async function httpGetArticlesPreviewByCategory(request: HttpRequest, con
     context.log(`Http function processed request for article category "${category}"`);
 
     const querySpec = {
-        query: "SELECT c.id, c.title, c.category, c.url, c.site, c.timestamp FROM c WHERE c.category = @category",
+        query: "SELECT c.id, c.title, c.category, c.url, c.site, c.timestamp, c.key FROM c WHERE c.category = @category",
         parameters: [{
             name: "@category",
             value: category as string,

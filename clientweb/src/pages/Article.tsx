@@ -5,6 +5,7 @@ import { Navigate, useBeforeUnload, useNavigate, useParams } from "react-router-
 import Header from "../components/Header";
 import { Article, ArticleDirectory } from "../data";
 import { getArticle, getArticlePreviews } from "../api";
+import { blobUrl } from "./Articles";
 
 export default () => {
 
@@ -57,6 +58,14 @@ export default () => {
               <tr>
                 <td>URL</td>
                 <td><a href={article.url}>{article.url}</a></td>
+              </tr>
+              <tr>
+                <td>Title Audio</td>
+                <td><a href={blobUrl(article, 'title')}>Download</a></td>
+              </tr>
+              <tr>
+                <td>Content Audio</td>
+                <td><a href={blobUrl(article, 'title')}>Download</a></td>
               </tr>
               <tr>
                 <td>Content</td>

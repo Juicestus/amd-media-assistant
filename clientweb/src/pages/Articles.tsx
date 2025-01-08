@@ -6,6 +6,9 @@ import Header from "../components/Header";
 import { Article, ArticleDirectory } from "../data";
 import { getArticlePreviews } from "../api";
 
+ export const blobUrl = (a: Article, type: 'content' | 'title') => 
+    "https://helpamdstorage.blob.core.windows.net/tts/" + a.key + "-" + type + ".wav";
+
 export default () => {
 
   const navigate = useNavigate();
@@ -15,7 +18,6 @@ export default () => {
   useEffect(() => {
     getArticlePreviews().then(a => setArticles(a));
   }, [setArticles]);
-
 
   return (
     <>
@@ -37,6 +39,7 @@ export default () => {
               <th>Category</th>
               <th>Site</th>
               {/* <th>URL</th> */}
+              <th>Audio</th>
               <th></th>
             </tr>
           </thead>
@@ -47,6 +50,9 @@ export default () => {
                 <td>{a.category}</td>
                 <td>{a.site}</td>
                 {/* <td>{a.url}</td> */}
+                <td>
+                  <a href={blobUrl(a, 'content')}>Download</a>
+                </td>
                 <td className="ad-btn-col">
                   <Button className="ad-btn" onClick={() => navigate(a.id)}>View</Button>
                 </td>
