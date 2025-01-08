@@ -35,3 +35,8 @@ export const uploadTTS = async (filename: string) => {
     const uploadBlobResponse = await blockBlobClient.uploadFile(filename);
     console.log(`Uploaded block blob ${filename} successfully`, uploadBlobResponse.requestId);
 }
+
+import * as fs from "fs";
+
+export const removeFile = (filename: string) => fs.unlink(filename, (err) => {
+    if (err) console.error(`Error removing file: ${err}`); });

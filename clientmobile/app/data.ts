@@ -14,6 +14,8 @@ export interface Article {
     timestamp: number;
 }
 
+
+
 export function isArticle(obj: any): obj is Article {
     return typeof obj === 'object' && obj !== null &&
         typeof obj.id === 'string' &&

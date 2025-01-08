@@ -4,7 +4,7 @@ import { Button, Card, Col, Container, Form, OverlayTrigger, Popover, Row, Table
 import { Navigate, useBeforeUnload, useNavigate } from "react-router-dom";
 import Header from "../components/Header";
 import { ArticleDirectory } from "../data";
-import { addArticleDirectory, getArticleDirectories } from "../api";
+import { addArticleDirectory, deleteArticleDirectory, getArticleDirectories } from "../api";
 
 // import MenuIcon from '@mui/icons-material/Menu';
 
@@ -27,6 +27,14 @@ export default () => {
       setCreateUrl("");
       getArticleDirectories().then(ad => setArticleDirectories(ad));
     });
+  }
+
+  const getDeleter = (id: string) => {
+    return (_: any) => {
+      deleteArticleDirectory(id).then(() => {
+        getArticleDirectories().then(ad => setArticleDirectories(ad));
+      });
+    }
   }
 
   return (
@@ -78,7 +86,7 @@ export default () => {
                 <td>{ad.id}</td>
                 <td>{ad.url}</td>
                 <td className="ad-btn-col">
-                  <Button className="ad-btn">Delete</Button>
+                  <Button className="ad-btn" onClick={getDeleter(ad.id)}>Delete</Button>
                 </td>
               </tr>
             ))}

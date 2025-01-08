@@ -1,0 +1,3 @@
+[ ] delete article directories from webclient
+[ ] periodic delete of old articles from db and storage
+[ ] client read tts 

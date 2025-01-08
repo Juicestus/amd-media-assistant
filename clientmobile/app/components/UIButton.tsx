@@ -1,6 +1,6 @@
 
 import { Alert, Button, StyleSheet, Text, View } from 'react-native';
-import { Speak } from '../tts';
+import { ttsSpeak } from '../tts';
 
 export const UIButton = ({ text, color, width, onclick }:
   { text: string, color: string, width: number, onclick: () => void }) => (
@@ -9,7 +9,6 @@ export const UIButton = ({ text, color, width, onclick }:
       title={"\n\n\n" + text + "\n\n\n\n"}
       color={color}
       onPress={() => {
-        Speak('Button ' + text + ' pressed');
         onclick();
       }}
     />

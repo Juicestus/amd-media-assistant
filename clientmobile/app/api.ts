@@ -33,6 +33,9 @@ export const getArticlePreviewsByCategory = async (category: ArticleCategory): P
 }
 
 export const getArticle = async (id: string): Promise<Article> => {
+    console.log("Fetching article with id: " + id);
+    console.log(base + "getArticleById?id=" + id);
+
     return fetch(base + "getArticleById?id=" + id, {
         headers: corsHeaders,
     })

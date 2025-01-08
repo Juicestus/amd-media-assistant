@@ -1,8 +1,12 @@
 import { app, HttpRequest, HttpResponseInit, InvocationContext, output, input } from "@azure/functions";
 import { ArticleDirectory, isArticleDirectory } from "../data";
+import { CosmosClient } from "@azure/cosmos";
 
 const DB_NAME = process.env["CosmosDB_DatabaseName"];
 const CONTAINER_NAME = process.env["CosmosDB_ArticleDirectories_ContainerName"];
+
+const cosmosClient = new CosmosClient(process.env["CosmosDbConnectionSetting"]);
+export const articleDirectoryContainerInterface = cosmosClient.database(DB_NAME).container(CONTAINER_NAME);
 
 export const articleDirectoriesOutput = output.cosmosDB({
     databaseName: DB_NAME,
@@ -81,6 +85,7 @@ export async function httpDeleteArticleDirectory(request: HttpRequest, context: 
     context.log(`Http function processed request for url "${request.url}"`);
 
     const id = request.query.get('id');
+    console.log("Deleteing article directory with ID " + id);
 
     if (!id) {
         return {
@@ -90,16 +95,10 @@ export async function httpDeleteArticleDirectory(request: HttpRequest, context: 
     }
 
     try {
-        const deleteQuery = {
-            query: 'DELETE FROM c WHERE c.id = @id',
-            parameters: [{ name: '@id', value: id }]
-        };
-
-        context.extraOutputs.set(articleDirectoriesOutput, deleteQuery);
-
+        articleDirectoryContainerInterface.item(id, id).delete();
         return {
             status: 200,
-            body: `Deleted Article Directory with id ${id}`
+            body: `Deleted article directory with id ${id}`
         };
     } catch (error) {
         return {

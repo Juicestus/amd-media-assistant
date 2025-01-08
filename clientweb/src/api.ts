@@ -31,6 +31,18 @@ export const addArticleDirectory = async (name: string, url: string): Promise<vo
         });
 }
 
+export const deleteArticleDirectory = async (id: string): Promise<void> => {
+    return fetch(base + "deleteArticleDirectory?id=" + id, {
+        method: "DELETE",
+        headers: corsHeaders,
+    })
+        .then(response => {
+            if (!response.ok) {
+                alert("Failed to delete article directory " + response.text);
+            }
+        });
+}
+
 export const getArticlePreviews = async (): Promise<Article[]> => {
     return fetch(base + "getAllArticlesPreview", {
         headers: corsHeaders,

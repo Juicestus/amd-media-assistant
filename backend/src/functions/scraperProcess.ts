@@ -2,7 +2,7 @@ import { app, HttpRequest, HttpResponseInit, InvocationContext, Timer, output, i
 import * as scr from "../internal/scrape";
 import { articleDirectoriesInput } from "./articleDirectory";
 import { articleContainerInterface, articleOutput } from "./article";
-import { generateTTS, uploadTTS } from "../internal/tts";
+import { generateTTS, removeFile, uploadTTS } from "../internal/tts";
 import { Article } from "../data";
 
 const MAX_ARTICLE_LINKS_PER_DIRECTORY = 5;  // simple cap for excessive data
@@ -36,12 +36,10 @@ async function identifyArticleLinks(urls: string[]) {
 
 export async function timerTrigger(tim: Timer, context: InvocationContext): Promise<void> {
     await scr.initScraperIfNull();
-    // const articleDirectoryLinks = ((await context.extraInputs.get(articleDirectoriesInput)) as any[])
-    //         .map((dir: any) => dir.url);
-    // console.log(articleDirectoryLinks);
-    // const articleLinks = await identifyArticleLinks(articleDirectoryLinks);
-
-    const articleLinks = ["https://www.cnn.com/2025/01/07/food/mcdonalds-new-value-menu-mcvalue/index.html"];
+    const articleDirectoryLinks = ((await context.extraInputs.get(articleDirectoriesInput)) as any[])
+            .map((dir: any) => dir.url);
+    console.log(articleDirectoryLinks);
+    const articleLinks = await identifyArticleLinks(articleDirectoryLinks);
 
     for (const articleLink of articleLinks) {
         console.log('Scraping content from article ' + articleLink);
@@ -66,22 +64,20 @@ export async function timerTrigger(tim: Timer, context: InvocationContext): Prom
 
         generateTTS(article.title, ttsFilenameTitle, async () => {
             console.log(`Article "${article.title}" TTS title file created "${ttsFilenameTitle}"`);
-            uploadTTS(ttsFilenameTitle);
+            uploadTTS(ttsFilenameTitle).then(() => removeFile(ttsFilenameTitle));
 
             generateTTS(article.content, ttsFilenameContent, async () => {
                 console.log(`Article "${article.title}" TTS content file created "${ttsFilenameContent}"`);
-                uploadTTS(ttsFilenameContent);
+                uploadTTS(ttsFilenameContent).then(() => removeFile(ttsFilenameContent));
             });
-
         });
     }
 }
 
 app.timer('timerTrigger', {
     // schedule: '*/30 * * * * *',  // every 30 seconds
-    schedule: '0 */2 * * *',     // every 2 hours
-    // runOnStartup: false,
-    runOnStartup: true,
+    schedule: '0 */4 * * *',     // every 2 hours
+    // runOnStartup: true,
     handler: timerTrigger,
     extraInputs: [articleDirectoriesInput],
     extraOutputs: [articleOutput]
