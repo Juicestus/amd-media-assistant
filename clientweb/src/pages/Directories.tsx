@@ -22,6 +22,10 @@ export default () => {
   const [ createUrl, setCreateUrl ] = useState("");
 
   const addArticleDirectoryEvent = () => {
+    if (createName === "" || createUrl === "") {
+      alert("Both Name and URL must be present to add a page")
+      return;
+    }
     addArticleDirectory(createName, createUrl).then(_ => {
       setCreateName("");
       setCreateUrl("");

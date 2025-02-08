@@ -18,6 +18,8 @@ export async function initScraperIfNull() {
     }
 }
 
+const sleep = function(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+
 export async function grabArticleLinksFromPage(url: string): Promise<string[]> {
     await scraper.page.goto(url, { waitUntil: "networkidle2" });
     const selector = 'body';
@@ -35,19 +37,30 @@ export async function grabArticleLinksFromPage(url: string): Promise<string[]> {
       });
     console.log("Scraped " + url + " found " + data.split('\n').length + " unique links");
     await llm.initLLMIfNull();
-    const msg = "Please filter the links to only be the ones that are for articles."
+    const msg = "Please filter the links to only be the ones that are for specific articles."
+        + " We want links that yield a specific article, not just a general topic."
+        // + " For example 'example.com/world/afriac' is unlikely"
+        // + " to be a specific article, however 'example.com/2025/01/14/asia/south-korea-yoon-suk-yeol-residence-intl/index.html' is."
         + " Please return your response in a json object with single entry \"articles\" which"
         + " is a list of the article links as strings.\n" + data
-    console.log(msg);
 
     await llm.sendMessage(msg);
     const run = await llm.beginResponse();
     console.log("LLM run: " + run);
-    const result = await llm.getResult(run, "SCRAPE ARTICLE LINKS", url);
-    console.log(result);
-    // console.log(JSON.stringify(result));
-    const parsed = JSON.parse(result[0]['text']['value']);
-    return parsed['articles'];
+ 
+    while (true) {
+        const [status, result] = await llm.getResult(run, "SCRAPE ARTICLE LINKS", url);
+        if (status === "error") {
+            if (result === "rate_limit_exceeded") {
+                console.log("Rate limit hit -- delaying 30s!")
+                await sleep(30 * 1000);
+                continue;
+            } 
+            return null;
+        }
+        const parsed = JSON.parse(result[0]['text']['value']);
+        return parsed['articles'];
+    }
 }
 
 export const siteFromUrl = (url: string) => {
@@ -55,7 +68,8 @@ export const siteFromUrl = (url: string) => {
     return p[p.length - 2] + '.' + p[p.length - 1];
 }
 
-export async function scrapeArticleFromLink(url: string): Promise<Article> {
+export async function scrapeArticleBody(existing: Partial<Article>): Promise<Article> {
+    const url = existing.url;
     await scraper.page.goto(url, { waitUntil: "networkidle2" });
     const selector = 'body';
     await scraper.page.waitForSelector(selector)
@@ -76,20 +90,39 @@ export async function scrapeArticleFromLink(url: string): Promise<Article> {
         // + " Please avoid modifying the content of the article, and rather remove irrelevant content."
         + "\n\n" + data);
     const run = await llm.beginResponse();
-    const result = await llm.getResult(run, "SCRAPE ARTICLE CONTENT", url);
-    // console.log(JSON.stringify(result));
-    const parsed = JSON.parse(result[0]['text']['value']);
-    // console.log(parsed);
-    return {
-        id: parsed['title'],
-        url: url,
-        site: siteFromUrl(url),
-        title: parsed['title'],
-        category: parsed['category'],
-        content: parsed['content'],
-        timestamp: Date.now(),
-        key: onewayKeyify(parsed['title'])
-    };
+
+    while (true) {
+        const [status, result] = await llm.getResult(run, "SCRAPE ARTICLE CONTENT", url);
+        // if (result === null) { return null; }
+        // console.log(JSON.stringify(result));
+        if (status === "error") {
+            if (result === "rate_limit_exceeded") {
+                console.log("Rate limit hit -- delaying 30s!")
+                await sleep(30 * 1000);
+                continue;
+            } 
+            return null;
+        }
+        try {
+            const parsed = JSON.parse(result[0]['text']['value']);
+            // console.log(parsed);
+            // const id = onewayKeyify(parsed['title']);
+
+            return {
+                id: existing.id,
+                url: url,
+                site: siteFromUrl(url),
+                title: parsed['title'],
+                category: parsed['category'],
+                content: parsed['content'],
+                timestamp: Date.now(),
+                key: onewayKeyify['title']  // legacy*
+            };
+        } catch (e) { // the LLM done fucked up
+            console.log(e);
+            return null;
+        }
+    }
 }
 
 export async function closeScraper(scraper: Scraper): Promise<void> {

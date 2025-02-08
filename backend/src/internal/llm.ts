@@ -54,13 +54,20 @@ export const getResult = async (run: any, taskname: any, taskid: any) => {
         );
         console.log(`LLM Task: ${taskname} of ${taskid} -- status: ${keepRetrievingRun.status}`);
 
+        if (keepRetrievingRun.status === "failed") {
+            const ecode = keepRetrievingRun.last_error.code;
+            console.log("Error: " + ecode + " - " + keepRetrievingRun.last_error.message);
+            return Promise.resolve(["error", ecode])
+            // return Promise.resolve(null);
+        }
+
         if (keepRetrievingRun.status === "completed") {
             console.log("\n");
 
             // Step 6: Retrieve the Messages added by the Assistant to the Thread
             const allMessages = await ai.beta.threads.messages.list(threadID);
 
-            return Promise.resolve(allMessages.data[0].content);
+            return Promise.resolve(["ok", allMessages.data[0].content]);
 
             break;
         } else if (

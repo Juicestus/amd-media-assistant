@@ -22,6 +22,11 @@ export default function RootLayout() {
     __setState(newState);
   }
 
+  const playUrl = (url: string) => {
+    console.log("Playing: " + url);
+    SoundPlayer.playUrl(url);
+  }
+
   const [articles, setArticles] = useState<Article[]>([]);
   const [currentCategory, setCurrentCategory] = useState<ArticleCategory>(articleCategories[0]);
   const [categoryPointers, setCategoryPointers] = useState<{ [key: string]: number }>({});
@@ -102,7 +107,7 @@ export default function RootLayout() {
       SoundPlayer.pause();
       // advance to the next article in the category
 
-      SoundPlayer.playUrl(blobUrl(nextArticle(), 'title'));
+      playUrl(blobUrl(nextArticle(), 'title'));
       setState(ReadingState.PREVIEW);
     }
   }
@@ -122,13 +127,13 @@ export default function RootLayout() {
 
       console.log("Playing category" + currentCategory);
       // being reading the preview of the first article
-      SoundPlayer.playUrl(blobUrl(currentArticle(), 'title'));
+      playUrl(blobUrl(currentArticle(), 'title'));
       setState(ReadingState.PREVIEW);
     }
 
     if (state == ReadingState.PREVIEW) {
       // start reading the article
-      SoundPlayer.playUrl(blobUrl(currentArticle(), 'content'));
+      playUrl(blobUrl(currentArticle(), 'content'));
       setState(ReadingState.PLAYING);
     }
 
@@ -140,7 +145,7 @@ export default function RootLayout() {
   }
 
   const miscAction = () => {
-    SoundPlayer.playUrl("https://helpamdstorage.blob.core.windows.net/tts/5-things-to-know-for-jan-8-california-wildfires-winter-storm-trump-transition-cybertruck-explosion-meta-content.wav");
+    playUrl("https://helpamdstorage.blob.core.windows.net/tts/5-things-to-know-for-jan-8-california-wildfires-winter-storm-trump-transition-cybertruck-explosion-meta-content.wav");
   }
 
   return (
@@ -148,8 +153,8 @@ export default function RootLayout() {
       <View>
         {/* <Text style={styles.title}>AMD Assistant</Text> */}
         {/* <View style={styles.separator} /> */}
-
-        <View style={styles.inLine}>
+  {/* ----- LEGACY UI ----- */}
+        {/* <View style={styles.inLine}>
           <UIButton text="I forgot" color="blue" width={47.5}
             onclick={miscAction} />
           <UIButton text="Category" color="blue" width={47.5}
@@ -164,7 +169,27 @@ export default function RootLayout() {
           <UIButton text="Play" color="green" width={30}
             onclick={playBtn} />
 
+        </View> */}
+
+  {/* ----- MICROSOFT UI ----- */}
+     
+        <View style={styles.inLine}>
+          <UIButton text="Cancel" color="red" width={47.5}
+            onclick={cancelBtn} />
+          <UIButton text="Play" color="green" width={47.5}
+            onclick={playBtn} />
         </View>
+
+        <View style={styles.separator} />
+
+        <View style={styles.inLine}>
+          <UIButton text="Pause" color="orange" width={47.5}
+            onclick={pauseBtn} />
+          <UIButton text="Category" color="blue" width={47.5}
+            onclick={nextCategory} />
+        </View>
+
+
       </View>
       {/* <StatusBar style="auto" /> */}
     </View>

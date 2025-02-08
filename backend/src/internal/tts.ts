@@ -31,9 +31,19 @@ const blobServiceClient = BlobServiceClient.fromConnectionString(process.env["Az
 const containerClient = blobServiceClient.getContainerClient("tts");
 
 export const uploadTTS = async (filename: string) => {
+    try {
+        const blockBlobClient = containerClient.getBlockBlobClient(filename);
+        const uploadBlobResponse = await blockBlobClient.uploadFile(filename);
+        console.log(`Uploaded block blob ${filename} successfully`, uploadBlobResponse.requestId);
+    } catch {
+        console.error("Error uploading TTS file to Azure Blob Storage -- This probably means that the file already exists.");
+    }
+}
+
+export const deleteTTS = async (filename: string) => {
     const blockBlobClient = containerClient.getBlockBlobClient(filename);
-    const uploadBlobResponse = await blockBlobClient.uploadFile(filename);
-    console.log(`Uploaded block blob ${filename} successfully`, uploadBlobResponse.requestId);
+    await blockBlobClient.delete();
+    console.log(`Deleted block blob ${filename}`);
 }
 
 import * as fs from "fs";

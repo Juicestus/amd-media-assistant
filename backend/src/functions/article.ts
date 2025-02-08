@@ -22,6 +22,20 @@ export const queryArticlePreview = input.cosmosDB({
     sqlQuery: 'SELECT c.id, c.title, c.category, c.url, c.site, c.timestamp, c.key FROM c'
 });
 
+export const queryArticleLinks = input.cosmosDB({
+    databaseName: DB_NAME,
+    containerName: CONTAINER_NAME,
+    connection: 'CosmosDbConnectionSetting',
+    sqlQuery: 'SELECT c.id, c.url, c.title FROM c'
+});
+
+export const queryArticleForDeletion = input.cosmosDB({
+    databaseName: DB_NAME,
+    containerName: CONTAINER_NAME,
+    connection: 'CosmosDbConnectionSetting',
+    sqlQuery: 'SELECT c.id, c.timestamp, c.key FROM c'
+});
+
 export async function httpGetAllArticlesPreview(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
     context.log(`Http function processed request for url "${request.url}"`);
 
@@ -121,7 +135,7 @@ export async function httpGetArticlesPreviewByCategory(request: HttpRequest, con
     const { resources } = await articleContainerInterface.items.query(querySpec).fetchAll();
     if (resources) {
         return { 
-            body: JSON.stringify(resources.map(article => ({
+            body: JSON.stringify(resources.filter(a => a.title !== "").map(article => ({
                 ...article,
                 content: ''
             } as Article)))
