@@ -1,11 +1,12 @@
 
-import { Alert, Button, StyleSheet, Text, View } from 'react-native';
+import { Alert, Button, StyleSheet, Text, View, Dimensions} from 'react-native';
 import 'react-native-reanimated';
 import { UIButton } from './components/UIButton';
 import { useEffect, useState } from 'react';
 import { Article, articleCategories, ArticleCategory, blobUrl } from './data';
 import { getArticle, getArticlePreviewsByCategory } from './api';
 import SoundPlayer, { SoundPlayerEventData } from 'react-native-sound-player'
+
 
 enum ReadingState {
   PRESTART = "Prestart",
@@ -155,9 +156,9 @@ export default function RootLayout() {
         {/* <View style={styles.separator} /> */}
   {/* ----- LEGACY UI ----- */}
         {/* <View style={styles.inLine}>
-          <UIButton text="I forgot" color="blue" width={47.5}
+          <UIButton text="I forgot" color="blue" width={48.5}
             onclick={miscAction} />
-          <UIButton text="Category" color="blue" width={47.5}
+          <UIButton text="Category" color="blue" width={48.5}
             onclick={nextCategory} />
         </View>
         <View style={styles.separator} />
@@ -174,18 +175,18 @@ export default function RootLayout() {
   {/* ----- MICROSOFT UI ----- */}
      
         <View style={styles.inLine}>
-          <UIButton text="Cancel" color="red" width={47.5}
+          <UIButton text="Cancel" color="red" width={48.5}
             onclick={cancelBtn} />
-          <UIButton text="Play" color="green" width={47.5}
+          <UIButton text="Play" color="green" width={48.5}
             onclick={playBtn} />
         </View>
 
-        <View style={styles.separator} />
+        {/* <View style={styles.separator} /> */}
 
         <View style={styles.inLine}>
-          <UIButton text="Pause" color="orange" width={47.5}
+          <UIButton text="Pause" color="orange" width={48.5}
             onclick={pauseBtn} />
-          <UIButton text="Category" color="blue" width={47.5}
+          <UIButton text="Category" color="blue" width={48.5}
             onclick={nextCategory} />
         </View>
 
@@ -202,6 +203,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
+    // width: "100%",
+    width: Dimensions.get('window').width,
+    height: Dimensions.get('window').height,
   },
   title: {
     textAlign: 'center',

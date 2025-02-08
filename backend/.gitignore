@@ -146,4 +146,4 @@ __azurite_db*__.json
 .yarn/install-state.gz
 .pnp.*
 .azure
-#*.wav
+*.wav
