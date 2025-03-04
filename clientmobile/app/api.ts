@@ -2,7 +2,8 @@ import { Article, ArticleCategory, ArticleDirectory } from "./data";
 
 // Make sure to point the port to localhost
 // adb reverse tcp:7071 tcp:7071
-const base = "http://10.0.2.2:7071/api/";
+// const base = "http://10.0.2.2:7071/api/"; // dev
+const base = "https://help-amd-backend.azurewebsites.net/api"; // prod
 
 const corsHeaders = {
     "Content-Type": "application/json",
