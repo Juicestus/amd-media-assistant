@@ -7,6 +7,32 @@ import { Article, articleCategories, ArticleCategory, blobUrl } from './data';
 import { getArticle, getArticlePreviewsByCategory } from './api';
 import SoundPlayer, { SoundPlayerEventData } from 'react-native-sound-player'
 
+import RNFS, { ReadDirItem } from 'react-native-fs';
+
+const listFilesInDirectory = async (directoryPath: string): Promise<ReadDirItem[]> => {
+  try {
+    const files = await RNFS.readDir(directoryPath);
+    return files;
+  } catch (error: any) {
+    console.error('Error reading directory:', error.message);
+    return [];
+  }
+};
+
+const printFiles = () => {
+// Example usage:
+const directoryPath = RNFS.DocumentDirectoryPath; // Path to the document directory
+listFilesInDirectory(directoryPath)
+  .then((files) => {
+    files.forEach((file) => {
+      console.log('File name:', file.name);
+      console.log('File path:', file.path);
+      console.log('Is directory:', file.isDirectory());
+    });
+  });
+
+  
+}
 
 enum ReadingState {
   PRESTART = "Prestart",
@@ -32,7 +58,10 @@ export default function RootLayout() {
   const [currentCategory, setCurrentCategory] = useState<ArticleCategory>(articleCategories[0]);
   const [categoryPointers, setCategoryPointers] = useState<{ [key: string]: number }>({});
   const [currentArticleIndex, setCurrentArticleIndex] = useState(0);
-  const currentArticle = () => articles[currentArticleIndex];
+  const currentArticle = () => {
+    console.log(articles[currentArticleIndex]);
+    return articles[currentArticleIndex];
+  }
 
   const nextCategory = async () => {
     SoundPlayer.pause();
@@ -59,6 +88,7 @@ export default function RootLayout() {
   const nextArticle = () => {
     const nextIndex = (currentArticleIndex + 1) % articles.length;
     setCurrentArticleIndex(nextIndex);
+    console.log(articles[nextIndex]);
     return articles[nextIndex];
   }
 
@@ -126,7 +156,7 @@ export default function RootLayout() {
   const playBtn = () => {
     if (state == ReadingState.PRESTART) {
 
-      console.log("Playing category" + currentCategory);
+      console.log("Playing category " + currentCategory);
       // being reading the preview of the first article
       playUrl(blobUrl(currentArticle(), 'title'));
       setState(ReadingState.PREVIEW);

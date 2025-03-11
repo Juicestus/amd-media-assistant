@@ -5,7 +5,7 @@ import { articleContainerInterface, articleOutput, queryArticleLinks } from "./a
 import { generateTTS, removeFile, uploadTTS } from "../internal/tts";
 import { Article, onewayKeyify } from "../data";
 
-const MAX_ARTICLE_LINKS_PER_DIRECTORY = 5;  // simple cap for excessive data
+const MAX_ARTICLE_LINKS_PER_DIRECTORY = 12;  // simple cap for excessive data
                                             // low for testing
 
 async function identifyArticleLinks(url: string): Promise<Partial<Article>[]> {
@@ -57,8 +57,8 @@ async function identifyArticleLinks(url: string): Promise<Partial<Article>[]> {
 export async function timerTrigger(tim: Timer, context: InvocationContext): Promise<void> {
     await scr.initScraperIfNull();
 
-    const existingArticleSnips = (await context.extraInputs.get(queryArticleLinks)) as Partial<Article>[];
-    const emtpyArticleSnips = existingArticleSnips.filter(a => a.title === "");
+    let existingArticleSnips = (await context.extraInputs.get(queryArticleLinks)) as Partial<Article>[];
+    let emtpyArticleSnips = existingArticleSnips.filter(a => a.title === "");
 
     if (existingArticleSnips.length < 5) { // some constant -- if there are not enough articles lets get some more
 
@@ -83,10 +83,11 @@ export async function timerTrigger(tim: Timer, context: InvocationContext): Prom
         }
 
     }
+    // crossing this boundry causes read issue?
 
     // Replicate reads -- bad (also must make above let)
-    // existingArticleSnips = (await context.extraInputs.get(queryArticleLinks)) as Partial<Article>[];
-    // emtpyArticleSnips = existingArticleSnips.filter(a => a.title === "");
+    existingArticleSnips = (await context.extraInputs.get(queryArticleLinks)) as Partial<Article>[];
+    emtpyArticleSnips = existingArticleSnips.filter(a => a.title === "");
 
     for (const emptyArticleSnip of emtpyArticleSnips) {
 

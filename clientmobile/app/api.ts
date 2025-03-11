@@ -3,7 +3,7 @@ import { Article, ArticleCategory, ArticleDirectory } from "./data";
 // Make sure to point the port to localhost
 // adb reverse tcp:7071 tcp:7071
 // const base = "http://10.0.2.2:7071/api/"; // dev
-const base = "https://help-amd-backend.azurewebsites.net/api"; // prod
+const base = "https://help-amd-backend.azurewebsites.net/api/"; // prod
 
 const corsHeaders = {
     "Content-Type": "application/json",
@@ -22,15 +22,19 @@ export const getArticlePreviews = async (): Promise<Article[]> => {
 }
 
 export const getArticlePreviewsByCategory = async (category: ArticleCategory): Promise<Article[]> => {
+    console.log(base + "getArticlesPreviewByCategory?category=" + category)
     return fetch(base + "getArticlesPreviewByCategory?category=" + category as string, {
         headers: corsHeaders,
     })
         .then(response => {
-            return response.json();
+            const rj = response.json();
+            return rj;
         })
         .then(data => {
             return data as Article[];
-        });
+        })
+        .catch(err => { console.log("ERROR:"); console.log(err); return [] });
+
 }
 
 export const getArticle = async (id: string): Promise<Article> => {

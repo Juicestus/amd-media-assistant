@@ -44,6 +44,8 @@ export async function grabArticleLinksFromPage(url: string): Promise<string[]> {
         + " Please return your response in a json object with single entry \"articles\" which"
         + " is a list of the article links as strings.\n" + data
 
+    // the rate limit loop might need to be elevated to this level
+
     await llm.sendMessage(msg);
     const run = await llm.beginResponse();
     console.log("LLM run: " + run);
@@ -52,8 +54,8 @@ export async function grabArticleLinksFromPage(url: string): Promise<string[]> {
         const [status, result] = await llm.getResult(run, "SCRAPE ARTICLE LINKS", url);
         if (status === "error") {
             if (result === "rate_limit_exceeded") {
-                console.log("Rate limit hit -- delaying 30s!")
-                await sleep(30 * 1000);
+                console.log("Rate limit hit -- delaying 6m!")
+                await sleep(6 * 60 * 1000);
                 continue;
             } 
             return null;

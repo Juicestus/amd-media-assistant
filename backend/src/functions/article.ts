@@ -57,7 +57,7 @@ export async function httpGetAllArticlesPreview(request: HttpRequest, context: I
 app.http('getAllArticlesPreview', {
     methods: ['GET'],
     extraInputs: [queryArticlePreview],
-    authLevel: 'function',
+    authLevel: 'anonymous',
     handler: httpGetAllArticlesPreview
 });
 
@@ -103,9 +103,19 @@ export async function httpGetArticleById(request: HttpRequest, context: Invocati
 
 app.http('getArticleById', {
     methods: ['GET'],
-    authLevel: 'function',
+    authLevel: 'anonymous',
     handler: httpGetArticleById
 });
+
+const shuffle = (array: any[]) => {
+    let currentIndex = array.length, randomIndex;
+    while (currentIndex !== 0) {
+        randomIndex = Math.floor(Math.random() * currentIndex);
+        currentIndex--;
+        [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+    }
+    return array;
+}
 
 export async function httpGetArticlesPreviewByCategory(request: HttpRequest, context: InvocationContext): Promise<HttpResponseInit> {
     const category = request.query.get('category');
@@ -135,10 +145,10 @@ export async function httpGetArticlesPreviewByCategory(request: HttpRequest, con
     const { resources } = await articleContainerInterface.items.query(querySpec).fetchAll();
     if (resources) {
         return { 
-            body: JSON.stringify(resources.filter(a => a.title !== "").map(article => ({
+            body: JSON.stringify(shuffle(resources.filter(a => a.title !== "").map(article => ({
                 ...article,
                 content: ''
-            } as Article)))
+            } as Article))))
         };
     }
 
@@ -150,6 +160,6 @@ export async function httpGetArticlesPreviewByCategory(request: HttpRequest, con
 
 app.http('getArticlesPreviewByCategory', {
     methods: ['GET'],
-    authLevel: 'function',
+    authLevel: 'anonymous',
     handler: httpGetArticlesPreviewByCategory
 });

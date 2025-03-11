@@ -55,7 +55,7 @@ export async function httpPostArticleDirectory(request: HttpRequest, context: In
 app.http('addArticleDirectory', {
     methods: ['POST'],
     extraOutputs: [articleDirectoriesOutput],
-    authLevel: 'function',
+    authLevel: 'anonymous',
     handler: httpPostArticleDirectory
 });
 
@@ -77,7 +77,7 @@ export async function httpGetArticleDirectories(request: HttpRequest, context: I
 app.http('getArticleDirectories', {
     methods: ['GET'],
     extraInputs: [articleDirectoriesInput],
-    authLevel: 'function',
+    authLevel: 'anonymous',
     handler: httpGetArticleDirectories
 });
 
@@ -111,6 +111,6 @@ export async function httpDeleteArticleDirectory(request: HttpRequest, context: 
 app.http('deleteArticleDirectory', {
     methods: ['DELETE'],
     extraOutputs: [articleDirectoriesOutput],
-    authLevel: 'function',
+    authLevel: 'anonymous',
     handler: httpDeleteArticleDirectory
 });
