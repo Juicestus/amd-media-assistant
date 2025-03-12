@@ -147,3 +147,5 @@ __azurite_db*__.json
 .pnp.*
 .azure
 *.wav
+
+tamu-local.settings.json
