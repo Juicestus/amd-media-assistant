@@ -1,6 +1,7 @@
 import { Article, ArticleDirectory } from "./data";
 
-const base = "http://localhost:7071/api/";
+// const base = "http://localhost:7071/api/";   // dev
+const base = "https://help-amd-backend.azurewebsites.net/api/"; // prod
 
 const corsHeaders = {
     "Content-Type": "application/json",
@@ -11,6 +12,7 @@ const corsHeaders = {
 };
 
 export const getArticleDirectories = async (): Promise<ArticleDirectory[]> => {
+    console.log(base + "getArticleDirectories");
     return fetch(base + "getArticleDirectories", {
         headers: corsHeaders,
     })

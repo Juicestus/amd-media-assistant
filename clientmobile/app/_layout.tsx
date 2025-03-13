@@ -1,5 +1,5 @@
 
-import { Alert, Button, StyleSheet, Text, View, Dimensions} from 'react-native';
+import { Alert, Button, StyleSheet, Text, View, Dimensions } from 'react-native';
 import 'react-native-reanimated';
 import { UIButton } from './components/UIButton';
 import { useEffect, useState } from 'react';
@@ -7,31 +7,12 @@ import { Article, articleCategories, ArticleCategory, blobUrl } from './data';
 import { getArticle, getArticlePreviewsByCategory } from './api';
 import SoundPlayer, { SoundPlayerEventData } from 'react-native-sound-player'
 
-import RNFS, { ReadDirItem } from 'react-native-fs';
+let playing_boop: boolean = false;
 
-const listFilesInDirectory = async (directoryPath: string): Promise<ReadDirItem[]> => {
-  try {
-    const files = await RNFS.readDir(directoryPath);
-    return files;
-  } catch (error: any) {
-    console.error('Error reading directory:', error.message);
-    return [];
-  }
-};
-
-const printFiles = () => {
-// Example usage:
-const directoryPath = RNFS.DocumentDirectoryPath; // Path to the document directory
-listFilesInDirectory(directoryPath)
-  .then((files) => {
-    files.forEach((file) => {
-      console.log('File name:', file.name);
-      console.log('File path:', file.path);
-      console.log('Is directory:', file.isDirectory());
-    });
-  });
-
-  
+const BOOP_DELAY = 200;
+const boop = () => {
+  playing_boop = true;
+  SoundPlayer.playAsset(require('../assets/bubble.m4a'));
 }
 
 enum ReadingState {
@@ -43,13 +24,15 @@ enum ReadingState {
 
 export default function RootLayout() {
 
-  const [state, __setState] = useState<ReadingState>(ReadingState.PRESTART);
+  let state = ReadingState.PRESTART;
   const setState = (newState: ReadingState) => {
     console.log("State: " + newState);
-    __setState(newState);
+
+    state = newState;
   }
 
   const playUrl = (url: string) => {
+    playing_boop = false;
     console.log("Playing: " + url);
     SoundPlayer.playUrl(url);
   }
@@ -57,15 +40,21 @@ export default function RootLayout() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [currentCategory, setCurrentCategory] = useState<ArticleCategory>(articleCategories[0]);
   const [categoryPointers, setCategoryPointers] = useState<{ [key: string]: number }>({});
-  const [currentArticleIndex, setCurrentArticleIndex] = useState(0);
+
+  // const [currentArticleIndex, setCurrentArticleIndex] = useState(0);
+  let currentArticleIndex = 0;
+  const setCurrentArticleIndex = (index: number) => currentArticleIndex = index;
+
   const currentArticle = () => {
-    console.log(articles[currentArticleIndex]);
+    console.log("Current article: " + articles[currentArticleIndex].id);
     return articles[currentArticleIndex];
   }
 
   const nextCategory = async () => {
     SoundPlayer.pause();
-    setCategoryPointers({ ...categoryPointers, [currentCategory]: currentArticleIndex + 1}); // !OR +1
+    boop();
+
+    setCategoryPointers({ ...categoryPointers, [currentCategory]: currentArticleIndex + 1 }); // !OR +1
     // ^ the or +1 is up to personal preference, doesnt need to be there
     // w/ +1 : the next time the category is selected, the next article will be read
     // w/o +1 : the same article will be read again that we ended the category on
@@ -88,18 +77,22 @@ export default function RootLayout() {
   const nextArticle = () => {
     const nextIndex = (currentArticleIndex + 1) % articles.length;
     setCurrentArticleIndex(nextIndex);
-    console.log(articles[nextIndex]);
+    console.log("Advancing to article: " + articles[nextIndex].id);
     return articles[nextIndex];
   }
 
-  const onFinishedPlaying = ({success}: SoundPlayerEventData) => {
+  const onFinishedPlaying = ({ success }: SoundPlayerEventData) => {
     console.log("Finished playing audio");
-    if (success) {
-      // advance to the next article in the category
-      console.log(state);
 
+    if (success && !playing_boop) {
+      console.log("Post-State: " + state);
+      // advance to the next article in the category
       if (state == ReadingState.PLAYING) {
         setTimeout(() => cancelBtn(), 2000);
+      }
+      else if (state == ReadingState.PREVIEW) {
+        // if the user has not pressed play again, start reading the article
+        setTimeout(() => playBtn(), 2000);
       }
     }
   }
@@ -108,10 +101,9 @@ export default function RootLayout() {
 
   useEffect(() => {
     // componentWillMount space
-
     const onFinishedPlayingSub = SoundPlayer.addEventListener('FinishedPlaying', onFinishedPlaying);
 
-    const onFinishedLoadingSub = SoundPlayer.addEventListener('FinishedLoadingURL', ({success, url}) => {
+    const onFinishedLoadingSub = SoundPlayer.addEventListener('FinishedLoadingURL', ({ success, url }) => {
       if (!success) {
         console.error("Failed to load audio URL: " + url);
       } else {
@@ -134,38 +126,54 @@ export default function RootLayout() {
   const cancelBtn = () => {
     if (state == ReadingState.PLAYING || state == ReadingState.PAUSED
       || state == ReadingState.PREVIEW) {
- 
-      SoundPlayer.pause();
-      // advance to the next article in the category
+      boop();
+      setTimeout(() => {
+        SoundPlayer.pause();
+        // advance to the next article in the category
 
-      playUrl(blobUrl(nextArticle(), 'title'));
-      setState(ReadingState.PREVIEW);
+        playUrl(blobUrl(nextArticle(), 'title'));
+        setState(ReadingState.PREVIEW);
+      }, 200);
+
     }
   }
 
   const pauseBtn = () => {
     if (state == ReadingState.PLAYING) {
-      // pause reading the article
-      SoundPlayer.pause();
-      setState(ReadingState.PAUSED);
+      // boop();
+      setTimeout(() => {
+        // pause reading the article
+        SoundPlayer.pause();
+        setState(ReadingState.PAUSED);
+      }, BOOP_DELAY);
     }
     // pause could be joined in state with play
     // and the same control could be used for both
   }
 
   const playBtn = () => {
-    if (state == ReadingState.PRESTART) {
 
-      console.log("Playing category " + currentCategory);
-      // being reading the preview of the first article
-      playUrl(blobUrl(currentArticle(), 'title'));
-      setState(ReadingState.PREVIEW);
+    if (state == ReadingState.PRESTART) {
+      boop();
+      setTimeout(() => {
+        console.log("Playing category " + currentCategory);
+        // being reading the preview of the first article
+        playUrl(blobUrl(currentArticle(), 'title'));
+
+      
+        setState(ReadingState.PREVIEW);
+        
+      }, BOOP_DELAY);
     }
 
     if (state == ReadingState.PREVIEW) {
-      // start reading the article
-      playUrl(blobUrl(currentArticle(), 'content'));
-      setState(ReadingState.PLAYING);
+      boop();
+      setTimeout(() => {
+        // start reading the article
+        playUrl(blobUrl(currentArticle(), 'content'));
+        setState(ReadingState.PLAYING);
+       
+      }, BOOP_DELAY);
     }
 
     if (state == ReadingState.PAUSED) {
@@ -175,16 +183,12 @@ export default function RootLayout() {
     }
   }
 
-  const miscAction = () => {
-    playUrl("https://helpamdstorage.blob.core.windows.net/tts/5-things-to-know-for-jan-8-california-wildfires-winter-storm-trump-transition-cybertruck-explosion-meta-content.wav");
-  }
-
   return (
     <View style={styles.container}>
       <View>
         {/* <Text style={styles.title}>AMD Assistant</Text> */}
         {/* <View style={styles.separator} /> */}
-  {/* ----- LEGACY UI ----- */}
+        {/* ----- LEGACY UI ----- */}
         {/* <View style={styles.inLine}>
           <UIButton text="I forgot" color="blue" width={48.5}
             onclick={miscAction} />
@@ -202,8 +206,8 @@ export default function RootLayout() {
 
         </View> */}
 
-  {/* ----- MICROSOFT UI ----- */}
-     
+        {/* ----- MICROSOFT UI ----- */}
+
         <View style={styles.inLine}>
           <UIButton text="Cancel" color="red" width={48.5}
             onclick={cancelBtn} />

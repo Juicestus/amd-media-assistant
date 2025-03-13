@@ -18,7 +18,7 @@ export async function initScraperIfNull() {
     }
 }
 
-const sleep = function(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+const sleep = function(ms: number) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
 export async function grabArticleLinksFromPage(url: string): Promise<string[]> {
     await scraper.page.goto(url, { waitUntil: "networkidle2" });
@@ -44,13 +44,11 @@ export async function grabArticleLinksFromPage(url: string): Promise<string[]> {
         + " Please return your response in a json object with single entry \"articles\" which"
         + " is a list of the article links as strings.\n" + data
 
-    // the rate limit loop might need to be elevated to this level
-
-    await llm.sendMessage(msg);
-    const run = await llm.beginResponse();
-    console.log("LLM run: " + run);
- 
     while (true) {
+        await llm.sendMessage(msg);
+        const run = await llm.beginResponse();
+        console.log("LLM run: " + run);
+    
         const [status, result] = await llm.getResult(run, "SCRAPE ARTICLE LINKS", url);
         if (status === "error") {
             if (result === "rate_limit_exceeded") {
@@ -85,22 +83,24 @@ export async function scrapeArticleBody(existing: Partial<Article>): Promise<Art
 
     console.log("Scraped " + url + " found " + data.length + " characters of text content");
     await llm.initLLMIfNull();
-    await llm.sendMessage("Given the following article content, please output a json object with the"
-        + " title of the article as a string, the category of the article from the set " 
-        + JSON.stringify(articleCategories)
-        + " as a string, and the content of the article as a string."
-        // + " Please avoid modifying the content of the article, and rather remove irrelevant content."
-        + "\n\n" + data);
-    const run = await llm.beginResponse();
 
     while (true) {
+
+        await llm.sendMessage("Given the following article content, please output a json object with the"
+            + " title of the article as a string, the category of the article from the set " 
+            + JSON.stringify(articleCategories)
+            + " as a string, and the content of the article as a string."
+            // + " Please avoid modifying the content of the article, and rather remove irrelevant content."
+            + "\n\n" + data);
+        const run = await llm.beginResponse();
+
         const [status, result] = await llm.getResult(run, "SCRAPE ARTICLE CONTENT", url);
         // if (result === null) { return null; }
         // console.log(JSON.stringify(result));
         if (status === "error") {
             if (result === "rate_limit_exceeded") {
-                console.log("Rate limit hit -- delaying 30s!")
-                await sleep(30 * 1000);
+                console.log("Rate limit hit -- delaying 6m!")
+                await sleep(6 * 60 * 1000);
                 continue;
             } 
             return null;

@@ -3,7 +3,8 @@
 import * as sdk from "microsoft-cognitiveservices-speech-sdk";
 
 var speechConfig = sdk.SpeechConfig.fromSubscription(process.env['AZURE_TTS_KEY'], "eastus");
-speechConfig.speechSynthesisVoiceName = "en-US-AndrewMultilingualNeural";
+//speechConfig.speechSynthesisVoiceName = "en-US-AndrewMultilingualNeural";
+speechConfig.speechSynthesisVoiceName = "en-IN-ArjunNeural";
 
 export const generateTTS = async (text: string, filename: string, onComplete: () => void) => {
     var audioConfig = sdk.AudioConfig.fromAudioFileOutput(filename);
