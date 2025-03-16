@@ -2,7 +2,7 @@
 // a solution to shared library linking is found.
 
 export type ArticleCategory = 'news' | 'politics' | 'economy' | 'sports';
-export const articleCategories: ArticleCategory[] = ['news', 'politics', 'economy', 'sports'];
+export const articleCategories: ArticleCategory[] = ['politics', 'sports', 'economy', 'news'];
 
 export interface Article {
     id: string;

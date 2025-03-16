@@ -104,6 +104,10 @@ export async function timerTrigger(tim: Timer, context: InvocationContext): Prom
     for (const emptyArticleSnip of emtpyArticleSnips) {
 
         console.log('Scraping content from article ' + emptyArticleSnip.url);
+        if (emptyArticleSnip.url.endsWith('.cms')) {
+            console.log('Skipping article ' + emptyArticleSnip.url + ' as it is a CMS page.');
+            continue;
+        }
         const article = await scr.scrapeArticleBody(emptyArticleSnip);
         if (article === null) continue;
 
