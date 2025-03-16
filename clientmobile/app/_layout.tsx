@@ -9,7 +9,7 @@ import SoundPlayer, { SoundPlayerEventData } from 'react-native-sound-player'
 
 let playing_boop: boolean = false;
 
-const BOOP_DELAY = 100;
+const BOOP_DELAY = 200;
 const boop = () => {
   playing_boop = true;
   SoundPlayer.playAsset(require('../assets/bell.m4a'));
@@ -47,8 +47,7 @@ export default function RootLayout() {
 
   const currentArticle = () => {
     console.log("Current index: " + currentArticleIndex);
-    console.log(articles.length);
-    console.log(articles);
+    console.log("There are " + articles.length + " articles in the " + currentCategory + " category");
     console.log("Current article: " + articles[currentArticleIndex].id);
     return articles[currentArticleIndex];
   }
@@ -75,10 +74,9 @@ export default function RootLayout() {
 
     setArticles(articles);
     setState(ReadingState.PRESTART);
-
-    // play the first article in the category
-    setTimeout(() => playBtn(), 2000);
   }
+
+ 
 
   const nextArticle = () => {
     const nextIndex = (currentArticleIndex + 1) % articles.length;
@@ -123,7 +121,6 @@ export default function RootLayout() {
 
     if (!pageLoaded) {
       getArticlePreviewsByCategory(currentCategory).then(s => setArticles(s));
-      console.log("Loaded articles with length" + articles.length);
       setPageLoaded(true);
     }
 
@@ -148,6 +145,21 @@ export default function RootLayout() {
 
     }
   }
+
+  // useEffect(() => {
+  //   // componentDidMount space
+  //   if (state == ReadingState.PRESTART && articles.length > 0 && pageLoaded) {
+  //     setTimeout(() => playBtn(), 2000);
+  //   }
+  // }, [articles, currentCategory, categoryPointers, pageLoaded]);
+
+  setInterval(() => {
+
+    if (state == ReadingState.PRESTART && articles.length > 0 && pageLoaded) {
+      playBtn();
+    }
+
+  }, 5000);
 
   const pauseBtn = () => {
     if (state == ReadingState.PLAYING) {

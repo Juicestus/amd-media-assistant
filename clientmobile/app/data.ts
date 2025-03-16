@@ -2,7 +2,7 @@
 // a solution to shared library linking is found.
 
 export type ArticleCategory = 'news' | 'politics' | 'economy' | 'sports';
-export const articleCategories: ArticleCategory[] = ['news', 'politics', 'economy', 'sports'];
+export const articleCategories: ArticleCategory[] = ['politics', 'sports', 'economy', 'news'];
 
 export interface Article {
     id: string;
@@ -41,6 +41,5 @@ export function isArticleDirectory(obj: any): obj is ArticleDirectory {
 export const onewayKeyify = (k: string) => k.replace(/ /g, "-").toLowerCase().replace(/[^a-z0-9-]/g, "");
 
 export const blobUrl = (a: Article, type: 'content' | 'title') => {
-    console.log(a);
     return "https://helpamdindiastorage.blob.core.windows.net/tts/" + a.id + "-" + type + ".wav";
 }
