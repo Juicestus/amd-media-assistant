@@ -9,10 +9,10 @@ import SoundPlayer, { SoundPlayerEventData } from 'react-native-sound-player'
 
 let playing_boop: boolean = false;
 
-const BOOP_DELAY = 200;
+const BOOP_DELAY = 100;
 const boop = () => {
   playing_boop = true;
-  SoundPlayer.playAsset(require('../assets/bubble.m4a'));
+  SoundPlayer.playAsset(require('../assets/bell.m4a'));
 }
 
 enum ReadingState {
@@ -46,6 +46,9 @@ export default function RootLayout() {
   const setCurrentArticleIndex = (index: number) => currentArticleIndex = index;
 
   const currentArticle = () => {
+    console.log("Current index: " + currentArticleIndex);
+    console.log(articles.length);
+    console.log(articles);
     console.log("Current article: " + articles[currentArticleIndex].id);
     return articles[currentArticleIndex];
   }
@@ -72,12 +75,15 @@ export default function RootLayout() {
 
     setArticles(articles);
     setState(ReadingState.PRESTART);
+
+    // play the first article in the category
+    setTimeout(() => playBtn(), 2000);
   }
 
   const nextArticle = () => {
     const nextIndex = (currentArticleIndex + 1) % articles.length;
     setCurrentArticleIndex(nextIndex);
-    console.log("Advancing to article: " + articles[nextIndex].id);
+    console.log("Advancing to " + nextIndex + "/" + articles.length + ", article: " + articles[nextIndex].id);
     return articles[nextIndex];
   }
 
@@ -88,7 +94,11 @@ export default function RootLayout() {
       console.log("Post-State: " + state);
       // advance to the next article in the category
       if (state == ReadingState.PLAYING) {
-        setTimeout(() => cancelBtn(), 2000);
+        if (currentArticleIndex + 1 < articles.length) {
+          setTimeout(() => cancelBtn(), 2000);
+        } else {
+          setTimeout(() => nextCategory(), 2000);
+        }
       }
       else if (state == ReadingState.PREVIEW) {
         // if the user has not pressed play again, start reading the article
@@ -113,6 +123,7 @@ export default function RootLayout() {
 
     if (!pageLoaded) {
       getArticlePreviewsByCategory(currentCategory).then(s => setArticles(s));
+      console.log("Loaded articles with length" + articles.length);
       setPageLoaded(true);
     }
 
@@ -146,6 +157,12 @@ export default function RootLayout() {
         SoundPlayer.pause();
         setState(ReadingState.PAUSED);
       }, BOOP_DELAY);
+    }
+
+    if (state == ReadingState.PAUSED) {
+      // resume reading the article from the last position
+      SoundPlayer.resume();
+      setState(ReadingState.PLAYING);
     }
     // pause could be joined in state with play
     // and the same control could be used for both
